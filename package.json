@@ -1,0 +1,13 @@
+{
+  "name": "game",
+  "description": "test de duostack",
+  "version": "0.1.1",
+  "author": "Vincent HETRU <vincent.hetru@13pass.com>",
+  "keywords": ["duostack", "test", "nodejs"],
+  "dependencies": {
+    "socket.io": ">= 0.6.0",
+		"mongodb": ">= 0.9.0"
+  },
+  "main": ".",
+  "engines": { "node": ">= 0.4.0" }
+}
