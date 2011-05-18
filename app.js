@@ -4,7 +4,8 @@
 
 var express = require('express')
     fs = require('fs'),
-    app = module.exports = express.createServer();
+    app = module.exports = express.createServer(),
+    io = require('socket.io');
 
 var paths={
   controllers: __dirname + '/controllers',
@@ -56,10 +57,24 @@ app.configure('production', function(){
 
 app.get('/', controllers.Index.index);
 //app.get('/fs/ls/:path', require(paths.controllers+'/filesystem.js').Filesystem.listDir);
-app.get(/^\/ls\/fs(\/.+)?\??$/, require(paths.controllers+'/filesystem.js').Filesystem.listDir);
+app.get(/^\/ls\/fs(\/.+)?\??$/, controllers.Filesystem.get_listDir);
 
 // Only listen on $ node app.js
 if (!module.parent) {
   app.listen(3000);
   console.log("Express server listening on port %d", app.address().port);
+  
+  var socket = io.listen(app); 
+  socket.on('connection', function(client){ 
+    client.on('message', function(message){
+      if(message.id && message.method && message.params){
+        switch(message.method) {
+          case 'listDir': controllers.Filesystem.sock_listDir(client,message.params,message.id); break;
+        }
+      }
+    }); 
+    client.on('disconnect', function(){
+    
+    }); 
+  }); 
 }
