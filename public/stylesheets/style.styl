@@ -1,0 +1,91 @@
+@import 'adding'
+@import 'var'
+
+input[type="text"]
+  background:none
+  border:none
+  background:#EDFFDB
+  
+  box-shadow: 1px 1px 2px #3A8000 inset  
+  
+  font-size:9pt
+  font-family:$font-face
+
+  height:18px
+  line-height:12px
+  width:160px
+  padding-left:10px
+  padding-right:10px
+  
+  border-radius:9px
+ 
+
+button, input[type="submit"]
+  margin-left:20px
+  cursor:pointer
+  border:none
+  border:1px solid #fff
+  background:none
+  
+  font-weight:bold 
+  background:#5DAC1B
+  color:#fff
+  
+  border-radius:2px 8px 2px 8px
+  box-shadow: 0px 0px 4px #444
+
+
+input[type="submit"][disabled="disabled"]
+  background:#777
+
+
+button:hover,input[type="submit"]:hover
+  background:#79CF36
+
+
+input[type="submit"][disabled="disabled"]:hover
+  background:#999
+
+  
+label
+  font-weight:bold
+
+
+body
+  margin: 0
+  padding: 0
+  color: #4D4D4D
+  font-family:$font-face
+  font-size: $text-size
+
+#gradient
+  position:fixed
+  top:0
+  left:0
+  right:0
+  bottom:0
+  linear-gradient(#79CF36, #5DAC1B, #3A8000)
+
+#content
+  position:absolute
+  width:520px
+  left:50%
+  top:30px
+  
+  margin:0
+  padding:20px
+  margin-left:-280px
+  padding-bottom:60px
+  
+  border-radius:10px 40px 10px 40px
+  
+  background:#fff
+  box-shadow: 0px 0px 20px #444
+  
+  text-align:center
+
+
+.buttonBar
+  position:absolute
+  bottom:20px
+  right:30px

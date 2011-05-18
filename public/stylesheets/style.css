@@ -1,0 +1,88 @@
+input[type="text"] {
+  background: none;
+  border: none;
+  background: #edffdb;
+  -moz-box-shadow: 1px 1px 2px #3a8000 inset;
+  -webkit-box-shadow: 1px 1px 2px #3a8000 inset;
+  box-shadow: 1px 1px 2px #3a8000 inset;
+  font-size: 9pt;
+  font-family: "Lucida Grande", "Lucida Sans Unicode", Helvetica, Arial, Verdana, sans-serif;
+  height: 18px;
+  line-height: 12px;
+  width: 160px;
+  padding-left: 10px;
+  padding-right: 10px;
+  border-radius: 9px;
+  -moz-border-radius: 9px;
+}
+button,
+input[type="submit"] {
+  margin-left: 20px;
+  cursor: pointer;
+  border: none;
+  border: 1px solid #fff;
+  background: none;
+  font-weight: bold;
+  background: #5dac1b;
+  color: #fff;
+  border-radius: 2px 8px 2px 8px;
+  -moz-border-radius: 2px 8px 2px 8px;
+  -moz-box-shadow: 0px 0px 4px #444;
+  -webkit-box-shadow: 0px 0px 4px #444;
+  box-shadow: 0px 0px 4px #444;
+}
+input[type="submit"][disabled="disabled"] {
+  background: #777;
+}
+button:hover,
+input[type="submit"]:hover {
+  background: #79cf36;
+}
+input[type="submit"][disabled="disabled"]:hover {
+  background: #999;
+}
+label {
+  font-weight: bold;
+}
+body {
+  margin: 0;
+  padding: 0;
+  color: #4d4d4d;
+  font-family: "Lucida Grande", "Lucida Sans Unicode", Helvetica, Arial, Verdana, sans-serif;
+  font-size: 12px;
+}
+#gradient {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-size: 100% 100%;
+  -moz-background-size: 100% 100%;
+  -webkit-background-size: 100% 100%;
+  -o-background-size: 100% 100%;
+  background: -webkit-gradient(linear, left bottom, left top, color-stop(0, #79cf36), color-stop(0.53, #5dac1b), color-stop(0.82, #3a8000));
+  background: -moz-linear-gradient(center bottom, #79cf36 0%, #5dac1b 53%, #3a8000 82%);
+}
+#content {
+  position: absolute;
+  width: 520px;
+  left: 50%;
+  top: 30px;
+  margin: 0;
+  padding: 20px;
+  margin-left: -280px;
+  padding-bottom: 60px;
+  border-radius: 10px 40px 10px 40px;
+  -moz-border-radius: 10px 40px 10px 40px;
+  background: #fff;
+  -moz-box-shadow: 0px 0px 20px #444;
+  -webkit-box-shadow: 0px 0px 20px #444;
+  box-shadow: 0px 0px 20px #444;
+  text-align: center;
+}
+.buttonBar {
+  position: absolute;
+  bottom: 20px;
+  right: 30px;
+}

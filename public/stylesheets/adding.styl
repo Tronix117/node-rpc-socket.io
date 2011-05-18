@@ -1,0 +1,17 @@
+border-radius()
+  border-radius:arguments
+  -moz-border-radius:arguments
+
+linear-gradient(c1,c2,c3)
+  background-size: 100% 100%
+  -moz-background-size: 100% 100%
+  -webkit-background-size: 100% 100%
+  -o-background-size: 100% 100%
+  background: -webkit-gradient(linear, left bottom, left top, color-stop(0, c1), color-stop(0.53, c2), color-stop(0.82, c3))
+  background: -moz-linear-gradient(center bottom, c1 0%, c2 53%, c3 82%)
+  //filter: progid:DXImageTransform.Microsoft.gradient(enabled='true', startColorstr=c1, endColorstr=c3, GradientType=0)
+  
+box-shadow()
+  -moz-box-shadow: arguments
+  -webkit-box-shadow: arguments
+  box-shadow: arguments
