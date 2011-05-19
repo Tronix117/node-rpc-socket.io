@@ -28,7 +28,7 @@ Object.defineProperty(Object.prototype, "extend", {
 });
 
 var test=2;
-var controllers={};//=require(paths.controllers);
+var controllers={};
 var files=fs.readdirSync( paths.controllers)
 files.forEach(function(file) {
   controllers.extend(require( paths.controllers+'/'+file));
@@ -42,7 +42,6 @@ app.configure(function(){
   app.use(express.methodOverride());
   app.use(express.cookieParser());
   app.use(express.session({ secret: 'One2tHr33F0uRf!vE' }));
-  //app.use(express.compiler({ src: __dirname + '/public', enable: ['sass'] }));
   app.use(app.router);
   app.use(require('stylus').middleware({ src: paths.public }));
   app.use(express.static(paths.public));
@@ -69,12 +68,12 @@ if (!module.parent) {
   var socket = io.listen(app); 
   socket.on('connection', function(client){ 
     controllers.Chat.rpc_init(client);
-    
+    /*
     client.on('message', function(message){
     
     }); 
     client.on('disconnect', function(){
     
-    }); 
+    }); */
   }); 
 }
