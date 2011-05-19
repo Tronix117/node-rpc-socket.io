@@ -2,17 +2,17 @@
  * Module dependencies.
  */
 
-var express = require('express')
-    fs = require('fs'),
-    app = module.exports = express.createServer(),
-    io = require('socket.io');
-
 var paths={
   controllers: __dirname + '/controllers',
   models: __dirname + '/models',
   public: __dirname + '/public',
   views: __dirname + '/views'
 };
+
+var express = require('express')
+    fs = require('fs'),
+    app = module.exports = express.createServer(),
+    io = require(paths.models+'/extanding/rpc.socket.io.js');
 
 Object.defineProperty(Object.prototype, "extend", {
     enumerable: false,
@@ -27,6 +27,7 @@ Object.defineProperty(Object.prototype, "extend", {
     }
 });
 
+var test=2;
 var controllers={};//=require(paths.controllers);
 var files=fs.readdirSync( paths.controllers)
 files.forEach(function(file) {
@@ -56,8 +57,9 @@ app.configure('production', function(){
 });
 
 app.get('/', controllers.Index.index);
+app.get('/chat', controllers.Chat.index);
 //app.get('/fs/ls/:path', require(paths.controllers+'/filesystem.js').Filesystem.listDir);
-app.get(/^\/ls\/fs(\/.+)?\??$/, controllers.Filesystem.get_listDir);
+//app.get(/^\/ls\/fs(\/.+)?\??$/, controllers.Filesystem.get_listDir);
 
 // Only listen on $ node app.js
 if (!module.parent) {
@@ -66,12 +68,10 @@ if (!module.parent) {
   
   var socket = io.listen(app); 
   socket.on('connection', function(client){ 
+    controllers.Chat.rpc_init(client);
+    
     client.on('message', function(message){
-      if(message.id && message.method && message.params){
-        switch(message.method) {
-          case 'listDir': controllers.Filesystem.sock_listDir(client,message.params,message.id); break;
-        }
-      }
+    
     }); 
     client.on('disconnect', function(){
     
