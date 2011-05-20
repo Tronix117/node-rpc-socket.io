@@ -3,8 +3,8 @@ var fs=require('fs'),
     files=fs.readdirSync(__dirname);
 
 files.forEach(function(file) {
-  if(file.substr(-2)==='js')
-    controllers.extend(require( './'+file));
+  if(file.substr(-2)==='js' && typeof (c=require( './'+file))==='object')
+    controllers.extend(c);
 });
 
 module.exports=controllers;

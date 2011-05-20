@@ -1,19 +1,15 @@
 {
-    "name": "diamondizer",
-    "description": "Interface web utilisateurs",
-    "version": "0.0.1",
-    "author": "Jeremy TRUFIER <jeremy@trufier.com>",
-    "keywords": ["interface", "diamond", "nodejs"],
-    "dependencies": {
-        "mongodb": ">= 0.9.0",
-        "express": ">= 2.3.4",
-        "mime": ">=1.2.2",
-        "connect": ">=1.4.1",
-        "qs": ">=0.1.0",
-        "socket.io": ">= 0.6.18",
-	"less": ">=1.1.0",
-	"stylus": ">=0.12.4"
-    },
-    "main": "server",
-    "engines": { "node": ">= 0.4.7" }
+  "name": "express-sockio-chat",
+  "description": "Node.js chat using express and socket.io",
+  "version": "0.0.2",
+  "author": "Jeremy TRUFIER <jeremy@trufier.com>",
+  "keywords": ["interface", "chat", "nodejs"],
+  "dependencies": {
+    "express": ">= 2.3.4",
+    "socket.io": ">= 0.6.18",
+	  "jade": ">=0.11.0",
+    "stylus": ">=0.12.4"
+  },
+  "main": "server",
+  "engines": { "node": ">= 0.4.7" }
 }

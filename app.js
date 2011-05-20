@@ -1,18 +1,17 @@
-/**
- * Module dependencies.
- */
- 
+// Paths
 var paths={
   controllers: __dirname + '/controllers',
   models: __dirname + '/models',
+  extends: __dirname + '/models/extends',
   public: __dirname + '/public',
   views: __dirname + '/views'
 };
 
+// Dependencies
 var express = require('express')
     app = module.exports = express.createServer(),
-    utils = require(paths.models+'/extanding/utils.js'),
-    io = require(paths.models+'/extanding/rpc.socket.io.js'),
+    utils = require(paths.extends + '/utils.js'),
+    io = require(paths.extends + '/rpc.socket.io.js'),
     controllers = require(paths.controllers);
 
 // Configuration
@@ -36,11 +35,10 @@ app.configure('production', function(){
   app.use(express.errorHandler()); 
 });
 
+// Routing
 app.get('/', controllers.Chat.get_index);
-//app.get('/fs/ls/:path', require(paths.controllers+'/filesystem.js').Filesystem.listDir);
-//app.get(/^\/ls\/fs(\/.+)?\??$/, controllers.Filesystem.get_listDir);
 
-// Only listen on $ node app.js
+// Server and Sockets
 if (!module.parent) {
   app.listen(3000);
   console.log("Express server listening on port %d", app.address().port);
@@ -48,12 +46,5 @@ if (!module.parent) {
   var socket = io.listen(app); 
   socket.on('connection', function(client){ 
     controllers.Chat.rpc_INIT(client);
-    /*
-    client.on('message', function(message){
-    
-    }); 
-    client.on('disconnect', function(){
-    
-    }); */
   }); 
 }

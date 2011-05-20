@@ -1,5 +1,6 @@
 exports.Chat = new function(){
   var $=this;
+  
   $.buffer=[];
     
   $.get_index=function(req, res, next){
@@ -20,15 +21,6 @@ exports.Chat = new function(){
   
   $.rpc_addMessage=function(params,client){
     $.buffer.push(params);
-    client.listener.broadcastNotifyRPC('newMessages',[params]);  //all client
+    client.listener.broadcastNotifyRPC('newMessages',[params]);
   };
 }();
-
-  
-/* bellow the same but with another method
-  $.rpc_addMessage=function(params,client){
-    $.buffer.push(params);
-    client.broadcastNotifyRPC(); //all client except current one
-    return params;
-  };
-*/

@@ -1,3 +1,7 @@
+/**
+ * @author Jeremy TRUFIER <jeremy@trufier.com>
+ */
+
 var io=require('socket.io'),
     Client=require('socket.io/lib/socket.io/client.js');
 
