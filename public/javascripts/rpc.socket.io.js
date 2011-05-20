@@ -55,8 +55,8 @@ io.Socket.prototype.callRPC=function(method, params, callback){
   if(callback && typeof callback=='function')
     options.success=callback;
   if(callback && typeof callback=='object')
-    options=io.util.merge(options, callback);
-  
+    io.util.merge(options, callback);
+    
   var r={};
   if(options.success || options.error){
     if(options.cleanCallbacksOnTimeout){

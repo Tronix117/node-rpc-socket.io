@@ -59,7 +59,7 @@ Client.prototype.callRPC=function(method, params, callback){
   if(callback && typeof callback=='function')
     options.success=callback;
   if(callback && typeof callback=='object')
-    options=merge(options, callback);
+    merge(options, callback);
   
   var r={};
   if(options.success || options.error){
@@ -79,11 +79,26 @@ Client.prototype.callRPC=function(method, params, callback){
 /**
  * Register a new function to be called by JSON-RPC
  *
+ * Run each function, next() run the following, stop when a callback function return is reach
+ *
  * @param string Name of the JSON-RPC method
- * @param function(data, client) Callback to execute when the JSON-RPC is fired for this method
+ * @param function(data, client, next) Callback to execute when the JSON-RPC is fired for this method
+ *     OR array<function(data, client, next)>
+ * @param optional function(data, client, next) Callback to execute when the JSON-RPC is fired for this method
+ * @param ...
  */
 Client.prototype.registerRPC=function(method, callback){
-  this.registersRPC[method]=callback;
+  var callbacks=[];
+  for(var j=1;j<arguments.length;j++){
+    if(Array.isArray(arguments[j]))
+      for(var i=0;i<arguments[j].length;i++){
+        typeof arguments[j][i] === 'function' && callbacks.push(arguments[j][i]);
+      }
+    else if(typeof arguments[j] === 'function')
+      callbacks.push(arguments[j]);
+  }
+  if(callbacks.length>0)
+    this.registersRPC[method]=callbacks;
   return this;
 }
 
@@ -93,35 +108,61 @@ Client.prototype.broadcastNotifyRPC = function(message){
   return this;
 };
 
+io.Listener.prototype.runRegistersCallbackRPC=function(method, params, client, callbacks){
+  var ret=null;
+  var $$=this;
+  if(callbacks.length>0)
+    var c=callbacks.shift();
+    ret=c(params || null, client, function(){
+      if(callbacks.length>0)
+        ret=$$.runRegistersCallbackRPC(method, params, client, callbacks);
+    });
+  return ret;
+}
+
+io.Listener.prototype._onClientReturnRPC= function(data, client){
+  var res, id=data.id || null;
+  try{
+    res={
+      result:this.runRegistersCallbackRPC(
+        data.method, 
+        data.params || null, 
+        client, 
+        client.registersRPC[data.method].slice(0)
+      ),
+      id:id
+    };
+  }catch(e){
+    res={error:{code:e.code,message:e.message},id:id};
+  }
+  data.id && client.send(res);
+  
+  client.emit('RPCCall', data);
+  this.emit('clientRPCCall', data, client);
+  return;
+};
+
+io.Listener.prototype._onClientCallRPC= function(data, client){
+  if(data.id && client.callbacksRPC[data.id]){
+    client.callbacksRPC[data.id].timerOut && clearTimeout(this.callbacksRPC[id].timerOut);
+    data.result && typeof client.callbacksRPC[data.id].success=='function'  && client.callbacksRPC[data.id].success(data.result,client);
+    data.error && typeof client.callbacksRPC[data.id].error=='function' && client.callbacksRPC[data.id].error(data.error,client);
+    delete client.callbacksRPC[data.id];
+  }
+  client.emit('RPCReturn', data);
+  this.emit('clientRPCReturn', data, client);
+  return;
+};
+
 /**
  * Overloading of _onClientMessage to catch RPC call or RPC responses
  */
 io.Listener.prototype._onClientMessage = function(data, client){
-  if(typeof data=='object' && data.method && client.registersRPC[data.method]){
-    var res, id=data.id || null;
-    try{
-      res={result:client.registersRPC[data.method](data.params || null,client),id:id};
-    }catch(e){
-      res={error:{code:e.code,message:e.message},id:id};
-    }
-    data.id && client.send(res);
-    
-    client.emit('RPCCall', data);
-    this.emit('clientRPCCall', data, client);
-    return;
-  }
+  if(typeof data=='object' && data.method && client.registersRPC[data.method])
+    return this._onClientReturnRPC(data, client);
   
-  if(typeof data=='object' && (data.result || data.error)){
-    if(data.id && client.callbacksRPC[data.id]){
-      client.callbacksRPC[data.id].timerOut && clearTimeout(this.callbacksRPC[id].timerOut);
-      data.result && typeof client.callbacksRPC[data.id].success=='function'  && client.callbacksRPC[data.id].success(data.result,client);
-      data.error && typeof client.callbacksRPC[data.id].error=='function' && client.callbacksRPC[data.id].error(data.error,client);
-      delete client.callbacksRPC[data.id];
-    }
-    client.emit('RPCReturn', data);
-    this.emit('clientRPCReturn', data, client);
-    return;
-  }
+  if(typeof data=='object' && (data.result || data.error))
+    return this._onClientCallRPC(data, client);
   
   //original Listener._onClientMessage
   this.emit('clientMessage', data, client);
