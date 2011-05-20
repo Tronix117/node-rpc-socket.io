@@ -43,11 +43,16 @@ io.Socket.prototype.callRPC=function(method, params, callback){
         timeout: 8000,
         cleanCallbacksOnTimeout: true,
         success: null,
-        error: null     
+        error: null,
+        params: {}    
       },
       id=$.uniqId();
   
-  if(typeof callback=='function')
+  if(params && typeof params=='function')
+    options.success=params;
+  else if(params)
+    options.params=params;
+  if(callback && typeof callback=='function')
     options.success=callback;
   if(callback && typeof callback=='object')
     options=io.util.merge(options, callback);
@@ -64,7 +69,7 @@ io.Socket.prototype.callRPC=function(method, params, callback){
   }
   r!={} && ($.callbacksRPC[id]=r);
   
-	return $.send({method:method,params:params,id:id});
+	return $.send({method:method,params:options.params,id:id});
 };
 
 /**
@@ -84,17 +89,17 @@ io.Socket.prototype.registerRPC=function(method, callback){
  * @param data The message from the Socket.IO server.
  */
 io.Socket.prototype.onMessage = function(data){
-  if(typeof data=='object' && data.method && this.registersRPC[method]){
+  if(typeof data=='object' && data.method && this.registersRPC[data.method]){
     var res, id=data.id || null;
     try{
-      res={result:this.registersRPC[method](data.params || null),id:id};
+      res={result:this.registersRPC[data.method](data.params || null),id:id};
     }catch(e){
       res={error:{code:e.code,message:e.message},id:id};
     }
     
     data.id && this.send(res);
     
-    this.emit('RPCCall', data);
+    this.emit('RPCCall', [data]);
     return;
   }
   
@@ -105,7 +110,7 @@ io.Socket.prototype.onMessage = function(data){
       data.error && typeof this.callbacksRPC[data.id].error=='function' && this.callbacksRPC[data.id].error(data.error);
       delete this.callbacksRPC[data.id];
     }
-    this.emit('RPCReturn', data);
+    this.emit('RPCReturn', [data]);
     return;
   }
 

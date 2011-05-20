@@ -1,7 +1,7 @@
 /**
  * Module dependencies.
  */
-
+ 
 var paths={
   controllers: __dirname + '/controllers',
   models: __dirname + '/models',
@@ -10,29 +10,10 @@ var paths={
 };
 
 var express = require('express')
-    fs = require('fs'),
     app = module.exports = express.createServer(),
-    io = require(paths.models+'/extanding/rpc.socket.io.js');
-
-Object.defineProperty(Object.prototype, "extend", {
-    enumerable: false,
-    value: function(from) {
-        var props = Object.getOwnPropertyNames(from);
-        var dest = this;
-        props.forEach(function(name) {
-                var destination = Object.getOwnPropertyDescriptor(from, name);
-                Object.defineProperty(dest, name, destination);
-        });
-        return this;
-    }
-});
-
-var test=2;
-var controllers={};
-var files=fs.readdirSync( paths.controllers)
-files.forEach(function(file) {
-  controllers.extend(require( paths.controllers+'/'+file));
-});
+    utils = require(paths.models+'/extanding/utils.js'),
+    io = require(paths.models+'/extanding/rpc.socket.io.js'),
+    controllers = require(paths.controllers);
 
 // Configuration
 app.configure(function(){
@@ -55,8 +36,7 @@ app.configure('production', function(){
   app.use(express.errorHandler()); 
 });
 
-app.get('/', controllers.Index.index);
-app.get('/chat', controllers.Chat.index);
+app.get('/', controllers.Chat.get_index);
 //app.get('/fs/ls/:path', require(paths.controllers+'/filesystem.js').Filesystem.listDir);
 //app.get(/^\/ls\/fs(\/.+)?\??$/, controllers.Filesystem.get_listDir);
 
@@ -67,7 +47,7 @@ if (!module.parent) {
   
   var socket = io.listen(app); 
   socket.on('connection', function(client){ 
-    controllers.Chat.rpc_init(client);
+    controllers.Chat.rpc_INIT(client);
     /*
     client.on('message', function(message){
     

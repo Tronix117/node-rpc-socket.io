@@ -28,13 +28,14 @@ Client.prototype.uniqId=function(){
  *
  * @param string Method to call on client
  * @param mixed Values or params to pass to the called method
+ *     OR function(result) Called when client has respond with result of the method in arguments
  * @param function(result) Called when client has respond with result of the method in arguments
  *     OR object Contain settings which can be :
  *          {
  *            timeout int clientTimeout //After this duration, the callback is lost and will never be fired
  *            cleanCallbacksOnTimeout bool true //explicit, but can be set to false if we don't want to run timers, but be carefull
- *            success function(result) //Called when the client has respond, with result of the method in arguments
- *            error function(error) //Called when an error occur at client side, most of the time : {code:XXX, message:XXX}
+ *            success function(result, client) //Called when the client has respond, with result of the method in arguments
+ *            error function(error, client) //Called when an error occur at client side, most of the time : {code:XXX, message:XXX}
  *          }
  */
 Client.prototype.callRPC=function(method, params, callback){
@@ -45,9 +46,13 @@ Client.prototype.callRPC=function(method, params, callback){
         success: null,
         error: null     
       },
-      id=$.listener.uniqId();
+      id=$.uniqId();
   
-  if(typeof callback=='function')
+  if(params && typeof params=='function')
+    options.success=params;
+  else if(params)
+    options.params=params;
+  if(callback && typeof callback=='function')
     options.success=callback;
   if(callback && typeof callback=='object')
     options=merge(options, callback);
@@ -64,19 +69,25 @@ Client.prototype.callRPC=function(method, params, callback){
   }
   r!={} && ($.callbacksRPC[id]=r);
   
-	return $.send({method:method,params:params,id:id});
+	return $.send({method:method,params:options.params,id:id});
 };
 
 /**
  * Register a new function to be called by JSON-RPC
  *
  * @param string Name of the JSON-RPC method
- * @param function Callback to execute when the JSON-RPC is fired for this method
+ * @param function(data, client) Callback to execute when the JSON-RPC is fired for this method
  */
 Client.prototype.registerRPC=function(method, callback){
   this.registersRPC[method]=callback;
   return this;
 }
+
+Client.prototype.broadcastNotifyRPC = function(message){
+  if (!('sessionId' in this)) return this;
+  this.listener.broadcastNotifyRPC(method, params, this.sessionId);
+  return this;
+};
 
 /**
  * Overloading of _onClientMessage to catch RPC call or RPC responses
@@ -85,7 +96,7 @@ io.Listener.prototype._onClientMessage = function(data, client){
   if(typeof data=='object' && data.method && client.registersRPC[data.method]){
     var res, id=data.id || null;
     try{
-      res={result:client.registersRPC[data.method](data.params || null),id:id};
+      res={result:client.registersRPC[data.method](data.params || null,client),id:id};
     }catch(e){
       res={error:{code:e.code,message:e.message},id:id};
     }
@@ -99,8 +110,8 @@ io.Listener.prototype._onClientMessage = function(data, client){
   if(typeof data=='object' && (data.result || data.error)){
     if(data.id && client.callbacksRPC[data.id]){
       client.callbacksRPC[data.id].timerOut && clearTimeout(this.callbacksRPC[id].timerOut);
-      data.result && typeof client.callbacksRPC[data.id].success=='function'  && client.callbacksRPC[data.id].success(data.result);
-      data.error && typeof client.callbacksRPC[data.id].error=='function' && client.callbacksRPC[data.id].error(data.error);
+      data.result && typeof client.callbacksRPC[data.id].success=='function'  && client.callbacksRPC[data.id].success(data.result,client);
+      data.error && typeof client.callbacksRPC[data.id].error=='function' && client.callbacksRPC[data.id].error(data.error,client);
       delete client.callbacksRPC[data.id];
     }
     client.emit('RPCReturn', data);
@@ -122,8 +133,8 @@ io.Listener.prototype._onClientMessage = function(data, client){
  *          {
  *            timeout int clientTimeout //After this duration, the callback is lost and will never be fired
  *            cleanCallbacksOnTimeout bool true //explicit, but can be set to false if we don't want to run timers, but be carefull
- *            success function(result) //Called when the client has respond, with result of the method in arguments
- *            error function(error) //Called when an error occur at client side, most of the time : {code:XXX, message:XXX}
+ *            success function(result, client) //Called when the client has respond, with result of the method in arguments
+ *            error function(error, client) //Called when an error occur at client side, most of the time : {code:XXX, message:XXX}
  *          }
  * @param number | string | array Used to determine to who doesn't send the callRPC
  */
@@ -134,6 +145,16 @@ io.Listener.prototype.broadcastCallRPC=function(method, params, callback, except
       this.clients[k[i]].callRPC(method, params, function(result){
         callback(result, this.clients[k[i]]);
       });
+    }
+  }
+  return this;
+}
+
+io.Listener.prototype.broadcastNotifyRPC=function(method, params, except){
+  for (var i = 0, k = Object.keys(this.clients), l = k.length; i < l; i++){
+    if (!except || ((typeof except == 'number' || typeof except == 'string') && k[i] != except)
+                || (Array.isArray(except) && except.indexOf(k[i]) == -1)){
+      this.clients[k[i]].callRPC(method, params);
     }
   }
   return this;

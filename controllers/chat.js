@@ -1,15 +1,14 @@
 exports.Chat = new function(){
   var $=this;
   $.buffer=[];
-  $.client=null;
     
-  $.index=function(req, res, next){
+  $.get_index=function(req, res, next){
     res.render('chat', {
       title: 'Chat'
     });
   };
   
-  $.rpc_init=function(client){
+  $.rpc_INIT=function(client){
     $.client=client;
     client.registerRPC('allMessage',$.rpc_allMessage)
           .registerRPC('addMessage',$.rpc_addMessage);
@@ -19,9 +18,17 @@ exports.Chat = new function(){
     return $.buffer;
   };
   
-  $.rpc_addMessage=function(params){
+  $.rpc_addMessage=function(params,client){
     $.buffer.push(params);
-    $.client.broadcast({result:params});
-    return params;
+    client.listener.broadcastNotifyRPC('newMessages',[params]);  //all client
   };
 }();
+
+  
+/* bellow the same but with another method
+  $.rpc_addMessage=function(params,client){
+    $.buffer.push(params);
+    client.broadcastNotifyRPC(); //all client except current one
+    return params;
+  };
+*/
