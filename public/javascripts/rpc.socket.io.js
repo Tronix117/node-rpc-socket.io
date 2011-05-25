@@ -89,6 +89,7 @@ io.Socket.prototype.registerRPC=function(method, callback){
  * @param data The message from the Socket.IO server.
  */
 io.Socket.prototype.onMessage = function(data){
+console.log(data);
   if(typeof data=='object' && data.method && this.registersRPC[data.method]){
     var res, id=data.id || null;
     try{

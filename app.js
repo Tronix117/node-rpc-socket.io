@@ -46,5 +46,10 @@ if (!module.parent) {
   var socket = io.listen(app); 
   socket.on('connection', function(client){ 
     controllers.Chat.rpc_INIT(client);
+    client.on('message',function(data){
+      console.log('----------------==>');
+      console.log(data);
+      console.log('<==----------------');
+    });
   }); 
 }
