@@ -21,7 +21,7 @@ app.configure(function(){
   app.use(express.bodyParser());
   app.use(express.methodOverride());
   app.use(express.cookieParser());
-  app.use(express.session({ secret: 'One2tHr33F0uRf!vE' }));
+  app.use(express.session({ secret: 'ItsForG!tHuB' }));
   app.use(app.router);
   app.use(require('stylus').middleware({ src: paths.public }));
   app.use(express.static(paths.public));
@@ -36,7 +36,7 @@ app.configure('production', function(){
 });
 
 // Routing
-app.get('/', controllers.Chat.get_index);
+app.get('/', controllers.Chat.get_index); //only one route to print the chat webpage
 
 // Server and Sockets
 if (!module.parent) {
@@ -46,10 +46,5 @@ if (!module.parent) {
   var socket = io.listen(app); 
   socket.on('connection', function(client){ 
     controllers.Chat.rpc_INIT(client);
-    client.on('message',function(data){
-      console.log('----------------==>');
-      console.log(data);
-      console.log('<==----------------');
-    });
   }); 
 }

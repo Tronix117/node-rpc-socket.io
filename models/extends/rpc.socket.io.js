@@ -87,7 +87,7 @@ Client.prototype.callRPC=function(method, params, callback){
  * @param optional function(data, client, next) Callback to execute when the JSON-RPC is fired for this method
  * @param ...
  */
-Client.prototype.registerRPC=function(method, callback){
+Client.prototype.listenRPC=function(method, callback){
   var callbacks=[];
   for(var j=1;j<arguments.length;j++){
     if(Array.isArray(arguments[j]))
@@ -102,7 +102,8 @@ Client.prototype.registerRPC=function(method, callback){
   return this;
 }
 
-Client.prototype.broadcastNotifyRPC = function(message){
+//Send a notification (= simple callRPC without callback) to ALL OTHERS clients (not to the current one)
+Client.prototype.broadcastNotifyRPC = function(method, params){
   if (!('sessionId' in this)) return this;
   this.listener.broadcastNotifyRPC(method, params, this.sessionId);
   return this;

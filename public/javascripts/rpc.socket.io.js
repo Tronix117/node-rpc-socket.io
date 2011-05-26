@@ -78,7 +78,7 @@ io.Socket.prototype.callRPC=function(method, params, callback){
  * @param string Name of the JSON-RPC method
  * @param function Callback to execute when the JSON-RPC is fired for this method
  */
-io.Socket.prototype.registerRPC=function(method, callback){
+io.Socket.prototype.listenRPC=function(method, callback){
   return this.registersRPC[method]=callback;
 }
 

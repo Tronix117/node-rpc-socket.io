@@ -18,6 +18,8 @@ jQuery(function($j){
 
   $j('#sendAction').live('click',function(e){
     e.preventDefault();
+    
+    //CallRPC, here we call a RPC method named "addMessag" from the server, it will send a new message to the server in order to redistribute to all others clients
     socket.callRPC('addMessage', {message:$j('#sendMessage').val(),pseudo:$j('#pseudo').val()}, {
       error: function(e){
         printError(e);
@@ -38,6 +40,8 @@ jQuery(function($j){
 
   socket.on('connect', function(){
     if($j('#sendAction').size()){ //if we are on the chat page then get message from server
+      
+      //CallRPC, here we call a RPC method named "allMessage" from the server, it will get at the first print of the webpage all the already sent messages from all others clients
       socket.callRPC('allMessage',printMessages);
     }
   });
