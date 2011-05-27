@@ -31,6 +31,7 @@ exports.Chat = new function(){
   $.rpc_addMessage=function(params,client){
     $.buffer.push(params); //push the message sent by the client, and all associated informations to the buffer
     client.listener.broadcastNotifyRPC('newMessages',[params]); //paid attention here : we want to send this new message to all other connected client, if you call directly client.broadcastNotifyRPC, it will send the call to all client except this one, instead we can use the client.listener.broadcastNotifyRPC to notify all client even this one. client.listener.broadcastNotifyRPC also have an except parameter which can be set
+    return true; //if this function doesn't return something, the client "success" callback will never be called, but we need it to empty the textarea field, look at the core.js file, in the client part : public/javascript/core.js
   };
   
   //just send all the buffer when a client request it
