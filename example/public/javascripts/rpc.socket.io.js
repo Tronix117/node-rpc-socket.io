@@ -1,1 +1,1 @@
-client/rpc.socket.io.js
+../../../client/rpc.socket.io.js
