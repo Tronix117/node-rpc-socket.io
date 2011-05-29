@@ -44,14 +44,28 @@ jQuery(function($j){
   });
 
   
+  //When the socket connection is open, do...
+  socket.on('connect', function(){
+    $j('#messageArea').html('<p><em>You are now connected !</em></p>');
+    
+    //CallRPC, here we call a RPC method named "allMessage" from the server, it will get at the first print of the webpage all the already sent messages from all others clients
+    socket.callRPC('allMessage',printMessages);
+    
+    //prepare for the broadcastNotifyRPC the server will send, called when an other client has sent a message
+    socket.listenRPC('newMessages',printMessages); 
+  });
+  
+  $j('#messageArea').append('<p class="waiting">Connecting<span>.</span></p>');
+  (dotConnecting=function(){
+    if($j('#messageArea .waiting').get(0)){
+      if($j('#messageArea .waiting span').html()=='...')
+        $j('#messageArea .waiting span').html('');
+      $j('#messageArea .waiting span').append('.');
+      setTimeout(dotConnecting,250);
+    }
+  })();
+  
   //I prefer to connect the socket, once all js functions are load, maybe it would be better to start it in first time
   socket.connect();
   
-  socket.listenRPC('newMessages',printMessages); //prepare for the broadcastNotifyRPC the server will send
-
-  //When the socket connection is open, do...
-  socket.on('connect', function(){
-    //CallRPC, here we call a RPC method named "allMessage" from the server, it will get at the first print of the webpage all the already sent messages from all others clients
-    socket.callRPC('allMessage',printMessages);
-  });
 });

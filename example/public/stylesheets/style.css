@@ -91,7 +91,7 @@ body {
   margin: 0;
   padding: 20px;
   margin-left: -280px;
-  padding-bottom: 60px;
+  padding-bottom: 10px;
   border-radius: 10px 40px 10px 40px;
   -moz-border-radius: 10px 40px 10px 40px;
   background: #fff;
@@ -120,4 +120,8 @@ body {
 }
 #infos {
   text-align: left;
+}
+p#disclaimer {
+  font-size: 9px;
+  margin-top: 20px;
 }

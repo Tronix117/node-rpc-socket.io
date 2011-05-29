@@ -1,0 +1,1 @@
+public/javascripts/rpc.socket.io.js
