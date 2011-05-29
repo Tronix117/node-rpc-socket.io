@@ -19,7 +19,7 @@
 
 You first need to install socket.io 
 
-  npm install -i socket.io
+    npm install -i socket.io
 
 ### Client-Side
 
@@ -32,4 +32,4 @@ You first need to install socket.io
 ```javascript
   var io = require('rpc.socket.io.js');
 ```
-It's not necessary to require `socket.io`, in fact `rpc.socket.io.js` already include it
+It's not necessary to require `socket.io`, in fact `rpc.socket.io.js` already include it>
