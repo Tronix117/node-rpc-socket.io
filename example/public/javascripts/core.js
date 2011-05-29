@@ -67,5 +67,4 @@ jQuery(function($j){
   
   //I prefer to connect the socket, once all js functions are load, maybe it would be better to start it in first time
   socket.connect();
-  
 });
