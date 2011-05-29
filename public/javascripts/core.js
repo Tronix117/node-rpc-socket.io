@@ -19,13 +19,20 @@ jQuery(function($j){
   $j('#sendAction').live('click',function(e){
     e.preventDefault();
     
+    $j('#sendAction, #sendMessage').attr('disabled','disabled'); //prevent the user for sending anothe message while the previous one, hasn't been sent or aborted
+    
     //CallRPC, here we call a RPC method named "addMessag" from the server, it will send a new message to the server in order to redistribute to all others clients
     socket.callRPC('addMessage', {message:$j('#sendMessage').val(),pseudo:$j('#pseudo').val()}, {
-      success: function(){
-        $j('#sendMessage').val(''); //when the success is called, clean textarea div
-      }
+      timeout: 2000, //default is 8000
+      success: function(result){
+        if(result)
+          $j('#sendMessage').val(''); //when the success is called, clean textarea div
+      },
       error: function(err){
         printError(err);
+      },
+      finaly: function(){
+        $j('#sendAction, #sendMessage').removeAttr('disabled');
       }
     }); //don't need a successcallback, the server send an notifyRPC
   });
@@ -40,7 +47,7 @@ jQuery(function($j){
   //I prefer to connect the socket, once all js functions are load, maybe it would be better to start it in first time
   socket.connect();
   
-  socket.registerRPC('newMessages',printMessages); //prepare for the broadcastNotifyRPC the server will send
+  socket.listenRPC('newMessages',printMessages); //prepare for the broadcastNotifyRPC the server will send
 
   //When the socket connection is open, do...
   socket.on('connect', function(){

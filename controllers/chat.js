@@ -25,13 +25,13 @@ exports.Chat = new function(){
   $.rpc_validate_message=function(params,client,next){
     if(!params.pseudo || !params.message)
       throw {code:'WRONGTYPE',message:'Bad parameters'}; //return an RPC error format to the client, which can be interpret at the client part by the "error" callback of the callRPC client method
-    next(); //if all's right, then we can pass to the next method which is in this particulare case $.rpc_addMessage
+    return next(); //if all's right, then we can pass to the next method which is in this particulare case $.rpc_addMessage
   }
   
   $.rpc_addMessage=function(params,client){
     $.buffer.push(params); //push the message sent by the client, and all associated informations to the buffer
     client.listener.broadcastNotifyRPC('newMessages',[params]); //paid attention here : we want to send this new message to all other connected client, if you call directly client.broadcastNotifyRPC, it will send the call to all client except this one, instead we can use the client.listener.broadcastNotifyRPC to notify all client even this one. client.listener.broadcastNotifyRPC also have an except parameter which can be set
-    return true; //if this function doesn't return something, the client "success" callback will never be called, but we need it to empty the textarea field, look at the core.js file, in the client part : public/javascript/core.js
+    return true; //if this function doesn't return something, the client "success" callback will never be called, but we need it to empty the textarea field, look at the core.js file, in the client part : public/javascript/core.js. I make it work like this, to prevent useless exchange between server and client when it's not necessary
   };
   
   //just send all the buffer when a client request it

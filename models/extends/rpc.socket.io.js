@@ -48,7 +48,9 @@ Client.prototype.callRPC=function(method, params, callback){
         timeout: $.options.timeout,
         cleanCallbacksOnTimeout: true,
         success: null,
-        error: null     
+        error: null,
+        finaly: null,
+        params: {}   
       },
       id=$.uniqId();
   
@@ -62,14 +64,16 @@ Client.prototype.callRPC=function(method, params, callback){
     merge(options, callback);
   
   var r={};
-  if(options.success || options.error){
+  if(options.success || options.error || options.finaly){
     if(options.cleanCallbacksOnTimeout){
       r.timerOut=setTimeout(function(){
+        $.onMessage({error:{code:'CALLRPCTIMEOUT',message:'Server has not respond in time'},id:id});
         delete $.callbacksRPC[id];
       },options.timeout);
     }
     options.success && (r.success=options.success);
     options.error && (r.error=options.error);
+    options.finaly && (r.finaly=options.finaly);
   }
   r!={} && ($.callbacksRPC[id]=r);
   
@@ -115,8 +119,7 @@ io.Listener.prototype.runRegistersCallbackRPC=function(method, params, client, c
   if(callbacks.length>0)
     var c=callbacks.shift();
     ret=c(params || null, client, function(){
-      if(callbacks.length>0)
-        ret=$$.runRegistersCallbackRPC(method, params, client, callbacks);
+      return $$.runRegistersCallbackRPC(method, params, client, callbacks);
     });
   return ret;
 }
@@ -148,6 +151,8 @@ io.Listener.prototype._onClientCallRPC= function(data, client){
     client.callbacksRPC[data.id].timerOut && clearTimeout(this.callbacksRPC[id].timerOut);
     data.result && typeof client.callbacksRPC[data.id].success=='function'  && client.callbacksRPC[data.id].success(data.result,client);
     data.error && typeof client.callbacksRPC[data.id].error=='function' && client.callbacksRPC[data.id].error(data.error,client);
+    typeof this.callbacksRPC[data.id].finaly=='function' && this.callbacksRPC[data.id].finaly(data);
+    
     delete client.callbacksRPC[data.id];
   }
   client.emit('RPCReturn', data);

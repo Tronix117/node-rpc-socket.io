@@ -44,6 +44,7 @@ io.Socket.prototype.callRPC=function(method, params, callback){
         cleanCallbacksOnTimeout: true,
         success: null,
         error: null,
+        finaly: null,
         params: {}    
       },
       id=$.uniqId();
@@ -58,63 +59,102 @@ io.Socket.prototype.callRPC=function(method, params, callback){
     io.util.merge(options, callback);
     
   var r={};
-  if(options.success || options.error){
+  if(options.success || options.error || options.finaly){
     if(options.cleanCallbacksOnTimeout){
       r.timerOut=setTimeout(function(){
+        $.onMessage({error:{code:'CALLRPCTIMEOUT',message:'Server has not respond in time'},id:id});
         delete $.callbacksRPC[id];
       },options.timeout);
     }
     options.success && (r.success=options.success);
     options.error && (r.error=options.error);
+    options.finaly && (r.finaly=options.finaly);
   }
   r!={} && ($.callbacksRPC[id]=r);
-  
 	return $.send({method:method,params:options.params,id:id});
 };
 
 /**
  * Register a new function to be called by JSON-RPC
  *
+ * Run each function, next() run the following, stop when a callback function return is reach
+ *
  * @param string Name of the JSON-RPC method
- * @param function Callback to execute when the JSON-RPC is fired for this method
+ * @param function(data, client, next) Callback to execute when the JSON-RPC is fired for this method
+ *     OR array<function(data, client, next)>
+ * @param optional function(data, client, next) Callback to execute when the JSON-RPC is fired for this method
+ * @param ...
  */
 io.Socket.prototype.listenRPC=function(method, callback){
-  return this.registersRPC[method]=callback;
+  var callbacks=[];
+  for(var j=1;j<arguments.length;j++){
+    if(Array.isArray(arguments[j]))
+      for(var i=0;i<arguments[j].length;i++){
+        typeof arguments[j][i] === 'function' && callbacks.push(arguments[j][i]);
+      }
+    else if(typeof arguments[j] === 'function')
+      callbacks.push(arguments[j]);
+  }
+  if(callbacks.length>0)
+    this.registersRPC[method]=callbacks;
+  return this;
 }
 
+io.Socket.prototype.runRegistersCallbackRPC=function(method, params, callbacks){
+  var ret=null;
+  var $$=this;
+  if(callbacks.length>0)
+    var c=callbacks.shift();
+    ret=c(params || null, function(){
+      if(callbacks.length>0)
+        ret=$$.runRegistersCallbackRPC(method, params, callbacks);
+    });
+  return ret;
+}
+
+io.Socket.prototype._onClientReturnRPC= function(data){
+  var res, id=data.id || null;
+  try{
+    res={
+      result:this.runRegistersCallbackRPC(
+        data.method, 
+        data.params || null, 
+        this.registersRPC[data.method].slice(0)
+      ),
+      id:id
+    };
+  }catch(e){
+    res={error:{code:e.code,message:e.message},id:id};
+  }
+  data.id && this.send(res);
+  
+  this.emit('RPCCall', data);
+  return;
+};
+
+io.Socket.prototype._onClientCallRPC= function(data){
+  if(data.id && this.callbacksRPC[data.id]){
+    this.callbacksRPC[data.id].timerOut && clearTimeout(this.callbacksRPC[data.id].timerOut);
+    data.result && typeof this.callbacksRPC[data.id].success=='function'  && this.callbacksRPC[data.id].success(data.result);
+    data.error && typeof this.callbacksRPC[data.id].error=='function' && this.callbacksRPC[data.id].error(data.error);
+    typeof this.callbacksRPC[data.id].finaly=='function' && this.callbacksRPC[data.id].finaly(data);
+    
+    delete this.callbacksRPC[data.id];
+  }
+  this.emit('RPCReturn', data);
+  return;
+};
+
 /**
- * When the transport receives new messages from the Socket.IO server it notifies us by calling
- * this method with the decoded `data` it received.
- *
- * @param data The message from the Socket.IO server.
+ * Overloading of onMessage to catch RPC call or RPC responses
  */
 io.Socket.prototype.onMessage = function(data){
-console.log(data);
-  if(typeof data=='object' && data.method && this.registersRPC[data.method]){
-    var res, id=data.id || null;
-    try{
-      res={result:this.registersRPC[data.method](data.params || null),id:id};
-    }catch(e){
-      res={error:{code:e.code,message:e.message},id:id};
-    }
-    
-    data.id && this.send(res);
-    
-    this.emit('RPCCall', [data]);
-    return;
-  }
+  if(typeof data=='object' && data.method && this.registersRPC[data.method])
+    return this._onClientReturnRPC(data);
   
-  if(typeof data=='object' && (data.result || data.error)){
-    if(data.id && this.callbacksRPC[data.id]){
-      this.callbacksRPC[data.id].timerOut && clearTimeout(this.callbacksRPC[data.id].timerOut);
-      data.result && typeof this.callbacksRPC[data.id].success=='function'  && this.callbacksRPC[data.id].success(data.result);
-      data.error && typeof this.callbacksRPC[data.id].error=='function' && this.callbacksRPC[data.id].error(data.error);
-      delete this.callbacksRPC[data.id];
-    }
-    this.emit('RPCReturn', [data]);
-    return;
-  }
-
+  if(typeof data=='object' && (data.result || data.error))
+    return this._onClientCallRPC(data);
+  
   //--Original method bellow--
   this.emit('message', [data]);
 };
