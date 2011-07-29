@@ -10,6 +10,7 @@
   - Very simple to use
   - Client can ask Server but Server can also ask Client
   - Asynchronous callbacks
+  - *NEW* Success or error response can be passed through other callbacks 
   - Exceptions are fully compatible with the JSON-RPC standard and can be interpreted by the `Error callback` client side (or server side)
   - Can also Broadcast an RPC message to all clients or all with exceptions (in this way, no response can be handled by the server, it works only like a notification)
   - Compatible all webbrowsers since ie5.5 (same compatibility as socket.io)
@@ -144,10 +145,11 @@ Now let's start the server and open a webbrowser window on the client-side page.
 #### client.listenRPC(methodName, methodToRun[, methodToRun2[, ...])
   Listen for a callRPC coming from the client, if client call `methodName`, then methodToRun will be fired and the result will be returned to the client.
   
-  methodToRun is called with three parameters : methodToRun(params, client, next)
+  methodToRun is called with three parameters : methodToRun(params, client, next, result)
   * params : parameters the client has sent
   * client : which client has sent the call (then we can use it for client.callRPC() from example)
   * next : method which call the next methodToRun, don't forget to precede it by `return` if you want that the result be the one of the next methodToRun : `return next();`
+  * result : *NEW* very usefull new stuff, you can pass this method through others structures, `result.error(object)` return an error to the client rpc call and `result.success(object)` return a success
   
   In the methodToRun, you can make `throw {code:'XXX',message:'Xxx xxx'}` structure, which will be interpreted correctly by the client. The `return` will be send in response to the client.
   
