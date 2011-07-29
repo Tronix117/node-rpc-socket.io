@@ -104,7 +104,7 @@ Client.prototype.listenRPC=function(method, callback){
   if(callbacks.length>0)
     this.registersRPC[method]=callbacks;
   return this;
-}
+};
 
 //Send a notification (= simple callRPC without callback) to ALL OTHERS clients (not to the current one)
 Client.prototype.broadcastNotifyRPC = function(method, params){
@@ -113,33 +113,53 @@ Client.prototype.broadcastNotifyRPC = function(method, params){
   return this;
 };
 
-io.Listener.prototype.runRegistersCallbackRPC=function(method, params, client, callbacks){
+io.Listener.prototype.runRegistersCallbackRPC=function(method, params, client, callbacks, result){
   var ret=null;
   var $$=this;
   if(callbacks.length>0)
     var c=callbacks.shift();
     ret=c(params || null, client, function(){
-      return $$.runRegistersCallbackRPC(method, params, client, callbacks);
-    });
+      return $$.runRegistersCallbackRPC(method, params, client, callbacks, result);
+    },result);
   return ret;
-}
+};
 
 io.Listener.prototype._onClientReturnRPC= function(data, client){
-  var res, id=data.id || null;
+  var res, id=data.id || null, $$=this;
+  
+  $$.isSend=false;
+  $$.send=function(res){
+    if(res.rpcReturnSuccess)
+      res={result:res.rpcReturnSuccess, id:id};
+    else if(res.rpcReturnError)
+      res={error:{code:res.rpcReturnError.code, message:res.rpcReturnError.message}, id:id};
+
+    data.id && client.send(res);
+    $$.isSend=true;
+  };
+  
   try{
-    res={
-      result:this.runRegistersCallbackRPC(
+    res = {rpcReturnSuccess: 
+      this.runRegistersCallbackRPC(
         data.method, 
         data.params || null, 
         client, 
-        client.registersRPC[data.method].slice(0)
-      ),
-      id:id
+        client.registersRPC[data.method].slice(0),
+        {
+          success:function(result){
+            $$.send({rpcReturnSuccess:result});
+          },
+          error:function(e){
+            $$.send({rpcReturnError:e});  
+          }
+        }
+      )
     };
   }catch(e){
-    res={error:{code:e.code,message:e.message},id:id};
+    res={rpcReturnError:e}
   }
-  data.id && client.send(res);
+  
+  !$$.isSend && $$.send(res);
   
   client.emit('RPCCall', data);
   this.emit('clientRPCCall', data, client);
@@ -199,7 +219,7 @@ io.Listener.prototype.broadcastCallRPC=function(method, params, callback, except
     }
   }
   return this;
-}
+};
 
 io.Listener.prototype.broadcastNotifyRPC=function(method, params, except){
   for (var i = 0, k = Object.keys(this.clients), l = k.length; i < l; i++){
@@ -209,6 +229,6 @@ io.Listener.prototype.broadcastNotifyRPC=function(method, params, except){
     }
   }
   return this;
-}
+};
 
 module.exports=io;
